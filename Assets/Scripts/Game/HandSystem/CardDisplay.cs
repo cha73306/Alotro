@@ -13,6 +13,8 @@ public class CardDisplay : MonoBehaviour, IPointerClickHandler
 
     public float liftAmount = 30f;
 
+    public bool isDragging = false;
+
     public void Init(CardData data, HandManager manager)
     {
         cardData = data;
@@ -28,6 +30,11 @@ public class CardDisplay : MonoBehaviour, IPointerClickHandler
 
     public void OnPointerClick(PointerEventData eventData)
     {
+        if (isDragging)
+        {
+            isDragging = false; // reset for next click
+            return;
+        }
         if (!cardData.isSelected)
         {
             // block selection if already at 5
@@ -43,7 +50,7 @@ public class CardDisplay : MonoBehaviour, IPointerClickHandler
         }
     }
 
-    void UpdateVisual()
+    public void UpdateVisual()
     {
         // lift effect
         if (cardData.isSelected)
@@ -54,6 +61,11 @@ public class CardDisplay : MonoBehaviour, IPointerClickHandler
         {
             rectTransform.anchoredPosition -= new Vector2(0, liftAmount);
         }
+    }
+
+    public bool MovingResetVisual()
+    {
+        return cardData.isSelected = false; // reset selection state
     }
 
     public bool IsSelected()

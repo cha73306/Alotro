@@ -25,7 +25,7 @@ MonoBehaviour:
     condition: 6
     targetRank: 0
     targetSuit: 0
-    targetHand: 1
+    targetHand: 8
     useRandomTargetHand: 1
     requiresAce: 0
     isSelected: 0
@@ -38,7 +38,7 @@ MonoBehaviour:
     type: 5
     activation: 1
     effectNumber: 0
-    condition: 0
+    condition: 6
     targetRank: 0
     targetSuit: 0
     targetHand: 0

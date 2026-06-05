@@ -12,6 +12,8 @@ GameObject:
   - component: {fileID: 4698186759286559479}
   - component: {fileID: 361258241100893516}
   - component: {fileID: 1628033591459145827}
+  - component: {fileID: -1286325144472935366}
+  - component: {fileID: 1104281576862235891}
   m_Layer: 5
   m_Name: Joker
   m_TagString: Untagged
@@ -90,9 +92,51 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   artwork: {fileID: 361258241100893516}
   jokerData:
-    name: 
+    jokerName: 
     description: 
-    sprite: {fileID: 0}
+    artwork: {fileID: 0}
     price: 0
     rarity: 
+    value: 0
+    type: 0
+    activation: 0
+    effectNumber: 0
+    condition: 0
+    targetRank: 0
+    targetSuit: 0
+    targetHand: 0
+    useRandomTargetHand: 0
+    requiresAce: 0
     isSelected: 0
+--- !u!114 &-1286325144472935366
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7922971157555651730}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8ae69301b48956e4d9c2f26ac6cccae1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &1104281576862235891
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7922971157555651730}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_IgnoreLayout: 0
+  m_MinWidth: -1
+  m_MinHeight: -1
+  m_PreferredWidth: -1
+  m_PreferredHeight: -1
+  m_FlexibleWidth: -1
+  m_FlexibleHeight: -1
+  m_LayoutPriority: 1

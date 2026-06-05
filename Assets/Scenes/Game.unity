@@ -6183,7 +6183,7 @@ GameObject:
   m_Component:
   - component: {fileID: 568185830}
   m_Layer: 5
-  m_Name: Jokers
+  m_Name: JokerArea
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -10089,6 +10089,9 @@ MonoBehaviour:
   HM: {fileID: 1862818638}
   jokerArea: {fileID: 568185830}
   jokerPrefab: {fileID: 7922971157555651730, guid: 0ac2b274ad40ba740942f4625499e9fe, type: 3}
+  floatingTextPrefab: {fileID: 4240868885346143070, guid: ff1caa31887ae1a428db02c139bfe345, type: 3}
+  floatingSquarePrefab: {fileID: 524259909488571781, guid: e861df922fd9005429e1c4373ac82520, type: 3}
+  uiCanvas: {fileID: 1528490685}
   ownedJokers: []
   jokerObjects: []
   jokerSpacing: 150

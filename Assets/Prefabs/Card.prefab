@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 8622723170589496494}
   - component: {fileID: 493860976720597632}
   - component: {fileID: 3665555626182224058}
+  - component: {fileID: -1811832975072942780}
   m_Layer: 5
   m_Name: Card
   m_TagString: Untagged
@@ -89,4 +90,22 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   artwork: {fileID: 493860976720597632}
+  cardData:
+    value: 0
+    suit: 0
+    sprite: {fileID: 0}
+    isSelected: 0
   liftAmount: 30
+--- !u!114 &-1811832975072942780
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5640789585292038555}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9ed4a77cf4d014f4fbd07133d5e2da56, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  handArea: {fileID: 0}

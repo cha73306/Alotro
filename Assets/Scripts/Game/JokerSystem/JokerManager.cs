@@ -2,10 +2,14 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using System.Linq;
+using TMPro;
+using System;
+using System.Collections;
 
 public class JokerManager : MonoBehaviour
 {
     [Header("Scripts"), Space]
+    public static JokerManager Instance;
     public JokerDatabase jokerDatabase;
     public PlayerGameInfo PGI;
     public JokerSystem jokerSystem;
@@ -15,6 +19,10 @@ public class JokerManager : MonoBehaviour
     public Transform jokerArea; // UI parent (like handArea)
     public GameObject jokerPrefab;
 
+    public GameObject floatingTextPrefab;
+    public GameObject floatingSquarePrefab;
+    public Transform uiCanvas;
+
     [Header("Variables"), Space]
     public List<JokerData> ownedJokers = new List<JokerData>();
     public List<GameObject> jokerObjects = new List<GameObject>();
@@ -22,6 +30,18 @@ public class JokerManager : MonoBehaviour
     public float jokerSpacing = 150f;
 
     public bool test = false;
+
+    void Awake()
+    {
+        if (Instance == null)
+        {
+            Instance = this;
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
+    }
     
     public void GiveJoker(int index) // DEBUG: give joker by index
     {
@@ -97,6 +117,87 @@ public class JokerManager : MonoBehaviour
         }
     }
 
+    GameObject GetJokerObject(JokerData joker)
+    {
+        return jokerObjects.First(j =>
+            j.GetComponent<JokerDisplay>().jokerData == joker
+        );
+    }
+
+    public void ShowFloatingText(Transform target, string text, string colorHex)
+    {
+        GameObject textObj = Instantiate(floatingTextPrefab, uiCanvas.transform);
+        GameObject square = Instantiate(floatingSquarePrefab, uiCanvas.transform);
+
+        Image squareColor = square.GetComponent<Image>();
+        Color32 blueColor = new Color32(0, 125, 255, 224); // #007DFF at 244 opacity
+        Color32 redColor = new Color32(252, 74, 68, 224); // #FC4A44 at 244 opacity
+        Color32 orangeColor = new Color32(255, 206, 0, 224); // #FFCE00 at 244 opacity
+
+        if (colorHex == "red")
+        {
+            squareColor.color = redColor;
+        }
+        else if (colorHex == "blue")
+        {
+            squareColor.color = blueColor;
+        }
+        else if (colorHex == "orange")
+        {
+            squareColor.color = orangeColor;
+        }
+
+        textObj.transform.localScale = Vector3.one;
+        square.transform.localScale = Vector3.one;
+
+        TextMeshProUGUI tmp = textObj.GetComponent<TextMeshProUGUI>();
+        tmp.text = text;
+
+        RectTransform canvasRect = uiCanvas.GetComponent<RectTransform>();
+        RectTransform textRect = textObj.GetComponent<RectTransform>();
+        RectTransform squareRect = square.GetComponent<RectTransform>();
+
+        // get SCREEN position of card
+        Vector3 screenPos = RectTransformUtility.WorldToScreenPoint(null, target.position);
+
+        // convert screen → canvas
+        Vector2 anchoredPos;
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(
+            canvasRect,
+            screenPos,
+            null,
+            out anchoredPos
+        );
+
+        // PERFECT ALIGNMENT ABOVE CARD
+        textRect.anchoredPosition = anchoredPos + new Vector2(0, -120);
+        squareRect.anchoredPosition = anchoredPos + new Vector2(0, -120);
+
+        StartCoroutine(FloatUp(textRect));
+        StartCoroutine(FloatUp(squareRect));
+
+        
+
+        Destroy(textObj, 0.3f);
+    }
+
+    IEnumerator FloatUp(RectTransform rt)
+    {
+        float time = 0f;
+        Vector2 start = rt.anchoredPosition;
+        Vector2 end = start + new Vector2(0, 50);
+
+        while (time < 1f)
+        {
+            time += Time.deltaTime * 2f;
+            if (rt != null)
+            {
+                rt.anchoredPosition = Vector2.Lerp(start, end, time);
+            }
+            yield return null;
+        }
+    }
+
     void Update()
     {
         if (Input.GetKeyDown(KeyCode.Alpha1)) GiveJoker(0);
@@ -145,7 +246,6 @@ public class JokerManager : MonoBehaviour
     
     public void OnPlayedJoker(List<CardData> cards, JokerSystem.HandContext context)
     {
-
         foreach (var joker in ownedJokers)
         {
             if (joker.activation != Activation.OnPlayed && 
@@ -166,6 +266,7 @@ public class JokerManager : MonoBehaviour
                     break;
                 
                 case JokerType.Economy:
+                    ShowFloatingText(GetJokerObject(joker).transform, "$" + joker.value, "orange");
                     PGI.money += (int)joker.value;
                     break;
             }
@@ -187,8 +288,8 @@ public class JokerManager : MonoBehaviour
 
     private HandRank GetRandomHandRank()
     {
-        var values = System.Enum.GetValues(typeof(HandRank));
-        var randomHand = (HandRank)values.GetValue(Random.Range(0, values.Length));
+        var values = Enum.GetValues(typeof(HandRank));
+        var randomHand = (HandRank)values.GetValue(UnityEngine.Random.Range(0, values.Length));
         Debug.Log($"<color=#FF0081>Jokers:</color> Play a <color=#FF0081>{HM.GetHandDisplayName(randomHand)}</color> this round"); // color = neon Rose or bubblegum bright
         return randomHand;
         
@@ -255,6 +356,54 @@ public class JokerManager : MonoBehaviour
             case Rank.Queen: return 10;
             case Rank.Jack: return 10;
             default: return (int)card.value;
+        }
+    }
+
+    public void HandleDrop(JokerDrag dragged)
+    {
+        // Put it back into the joker area
+        dragged.transform.SetParent(jokerArea);
+
+        // Set order
+        int newIndex = GetClosestIndex(dragged.GetComponent<RectTransform>().anchoredPosition);
+        dragged.transform.SetSiblingIndex(newIndex);
+
+        UpdateOwnedJokerOrder();
+
+        ArrangeJokers();
+    }
+
+    int GetClosestIndex(Vector3 draggedPos)
+    {
+        int closest = 0;
+        float minDist = float.MaxValue;
+
+        for (int i = 0; i < jokerArea.childCount; i++)
+        {
+            Vector2 targetPos = new Vector2(
+                (i - (jokerArea.childCount - 1) / 2f) * jokerSpacing, 0);
+
+            float dist = Vector2.Distance(draggedPos, targetPos);
+
+            if (dist < minDist)
+            {
+                minDist = dist;
+                closest = i;
+            }
+        }
+
+        return closest;
+    }
+
+    void UpdateOwnedJokerOrder()
+    {
+        ownedJokers.Clear();
+
+        for (int i = 0; i < jokerArea.childCount; i++)
+        {
+            Debug.Log(i + ": " + jokerArea.GetChild(i).name);
+            JokerDisplay jd = jokerArea.GetChild(i).GetComponent<JokerDisplay>();
+            ownedJokers.Add(jd.jokerData);
         }
     }
 }

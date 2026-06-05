@@ -37,7 +37,7 @@ public class Deck : MonoBehaviour
             }
         }
 
-        //ShuffleDeck();
+        ShuffleDeck();
         PGI.deck = deck.Count;
     }
 

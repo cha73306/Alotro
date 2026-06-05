@@ -4,13 +4,12 @@ using System.Collections;
 using System;
 using TMPro;
 using System.Linq;
-using Unity.Mathematics;
-using Microsoft.Unity.VisualStudio.Editor;
 using UnityEngine.UI;
 
 public class HandManager : MonoBehaviour
 {
     [Header("Scripts")]
+    public static HandManager Instance;
     public Hand handScript;
     public PlayerGameInfo PGI;
     public HandRewardDatabase rewardDB;
@@ -42,6 +41,17 @@ public class HandManager : MonoBehaviour
 
     [Header("Play Settings")]
     public float playSpacing = 150f;
+
+    void Awake()
+    {
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+
+        Instance = this;
+    }
 
     public void DrawStartingHand()
     {
@@ -221,14 +231,16 @@ public class HandManager : MonoBehaviour
 
         JM.OnPlayedJoker(scoringCards, context);
 
+        yield return new WaitForSeconds(1f);
+
         for (int i = 0; i < scoringCards.Count; i++)
         {
             CardData card = scoringCards[i];
 
             float chipValue = 0;
             chipValue = JM.ApplyChipsOnScoredJokers(card, context);
-            int multValue = 2;
-            double xMultValue = 4;
+            int multValue = 0;
+            double xMultValue = 0;
 
             // -------------------------
             // CHIPS
@@ -248,7 +260,6 @@ public class HandManager : MonoBehaviour
             if (multValue != 0)
             {
                 PGI.mult += multValue;
-                // ShowFloatingText(cards[i].transform, "+" + multValue, true);
                 GameObject mult = cards.First(c =>
                     c.GetComponent<CardDisplay>().cardData == card
                 );
@@ -264,7 +275,6 @@ public class HandManager : MonoBehaviour
             if (xMultValue != 0 && xMultValue != 1)
             {
                 PGI.mult = Math.Round(PGI.mult * xMultValue, 2);
-                // ShowFloatingText(cards[i].transform, "x" + xMultValue, true);
                 GameObject xMult = cards.First(c =>
                     c.GetComponent<CardDisplay>().cardData == card
                 );
@@ -310,12 +320,12 @@ public class HandManager : MonoBehaviour
         DisplayHand();
     }
 
-    void ShowFloatingText(Transform target, string text, bool isMult)
+    public void ShowFloatingText(Transform target, string text, bool isMult)
     {
         GameObject textObj = Instantiate(floatingTextPrefab, uiCanvas.transform);
         GameObject square = Instantiate(floatingSquarePrefab, uiCanvas.transform);
 
-        UnityEngine.UI.Image squareColor = square.GetComponent<UnityEngine.UI.Image>();
+        Image squareColor = square.GetComponent<Image>();
         Color32 blueColor = new Color32(0, 125, 255, 224); // #007DFF at 244 opacity
         Color32 redColor = new Color32(252, 74, 68, 224); // #FC4A44 at 244 opacity
 
@@ -462,6 +472,53 @@ public class HandManager : MonoBehaviour
         Debug.Log("<color=cyan>Check: </color>Hand cleared");
     }
 
+    public void HandleCardDrop(CardDrag dragged)
+    {
+        dragged.transform.SetParent(handArea);
+
+        int index = GetClosestCardIndex(dragged.GetComponent<RectTransform>().anchoredPosition);
+        dragged.transform.SetSiblingIndex(index);
+
+        UpdateHandOrder();
+        DisplayHand();
+    }
+
+    int GetClosestCardIndex(Vector2 draggedPos)
+    {
+        int closest = 0;
+        float minDist = float.MaxValue;
+
+        for (int i = 0; i < handArea.childCount; i++)
+        {
+            Vector2 targetPos = new Vector2((i - (handArea.childCount - 1) / 2f) * spacing, 0 );
+
+            float dist = Vector2.Distance(draggedPos, targetPos);
+
+            if (dist < minDist)
+            {
+                minDist = dist;
+                closest = i;
+            }
+        }
+
+        return closest;
+    }
+
+    public void UpdateHandOrder()
+    {
+        hand.Clear();
+
+        for (int i = 0; i < handArea.childCount; i++)
+        {
+            CardDisplay display = handArea.GetChild(i).GetComponent<CardDisplay>();
+
+            if (display != null && display.cardData != null)
+            {
+                hand.Add(display.cardData);
+            }
+        }
+    }
+
     int GetRankValue(CardData card)
     {
         // Ace is high
@@ -514,6 +571,8 @@ public class HandManager : MonoBehaviour
 
     public void SortHand()
     {
+        ResetVisual();
+        
         if (sortByRank)
         {
             SortByRank();
@@ -521,6 +580,15 @@ public class HandManager : MonoBehaviour
         else
         {
             SortBySuit();
+        }
+    }
+
+    public void ResetVisual()
+    {
+        foreach (Transform t in handArea)
+        {
+            CardDisplay cd = t.GetComponent<CardDisplay>();
+            cd.MovingResetVisual();
         }
     }
 
